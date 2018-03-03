@@ -34,7 +34,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1282, 753);
+            this.ClientSize = new System.Drawing.Size(1232, 1055);
             this.Name = "Form1";
             this.Text = "Image filters";
             this.ResumeLayout(false);
