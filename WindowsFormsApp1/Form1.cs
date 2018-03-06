@@ -27,6 +27,8 @@ namespace WindowsFormsApp1
         private Button buttonEdgeDetect;
         private Button buttonEmboss;
 
+        private Button buttonGamma;
+
         private Button buttonKernelReady;
         private TextBox kernelOneDimensionTextbox;
         private TextBox kernelSecondDimensionTextbox;
@@ -39,6 +41,8 @@ namespace WindowsFormsApp1
         private Label kernelSizeLabel;
         private Label offsetLabel;
         private Label pixelLabel;
+
+        private TrackBar gammaTrackbar;
         
         private int[,] kernel;
         private int kernelRows = 1;
@@ -47,6 +51,8 @@ namespace WindowsFormsApp1
         private int pixelColumn = 0;
         private int divisor = 1;
         private int offset = 0;
+
+        private double trackbar = 100;
 
         public Form1()
         {
@@ -112,6 +118,24 @@ namespace WindowsFormsApp1
             buttonEmboss.Top = 3 + 8 * buttonLoad.Height;
             buttonEmboss.Width = 150;
             buttonEmboss.Click += new EventHandler(this.EmbossOnClick);
+
+            buttonGamma = new Button();
+            buttonGamma.Text = "Gamma";
+            buttonGamma.Left = 3 + buttonLoad.Width;
+            buttonGamma.Top = 3 + 2 * buttonLoad.Height;
+            buttonGamma.Width = 150;
+            buttonGamma.Click += new EventHandler(this.GammaOnClick);
+
+            gammaTrackbar = new TrackBar();
+            gammaTrackbar.Left = 3 + buttonLoad.Width;
+            gammaTrackbar.Top = 3 + 4 * buttonLoad.Height;
+            gammaTrackbar.Height = 40;
+            gammaTrackbar.Width = 200;
+            gammaTrackbar.Minimum = 0;
+            gammaTrackbar.Maximum = 100;
+            gammaTrackbar.TickFrequency = 5;
+            gammaTrackbar.Orientation = Orientation.Horizontal;
+            gammaTrackbar.Scroll += new System.EventHandler(this.trackbarScroll);
 
             buttonKernelReady = new Button();
             buttonKernelReady.Text = "Ready";
@@ -215,7 +239,21 @@ namespace WindowsFormsApp1
             this.Controls.Add(pixelColumnTextbox);
             this.Controls.Add(pixelLabel);
 
+            this.Controls.Add(buttonGamma);
+            this.Controls.Add(gammaTrackbar);
+
             InitializeComponent();
+        }
+
+        private void trackbarScroll(object sender, EventArgs e)
+        {
+            trackbar = (double)Int32.Parse(gammaTrackbar.Value.ToString());
+        }
+
+        private void GammaOnClick(object sender, EventArgs e)
+        {
+            filterBitmap = SetGamma(originalBitmap, trackbar/10 );
+            filterImage.Image = filterBitmap;
         }
 
         private void PixelChanged(object sender, EventArgs e)
@@ -431,6 +469,34 @@ namespace WindowsFormsApp1
                 }
             }
             return (Bitmap)bitmap.Clone();
+        }
+
+        public Bitmap SetGamma(Bitmap orgBitmap, double gamma)
+        {
+            Bitmap temp = (Bitmap)orgBitmap.Clone();
+            Color c;
+            byte[] gammaArray = createGammaArray(gamma);
+            
+            for (int i = 0; i < temp.Width; i++)
+            {
+                for (int j = 0; j < temp.Height; j++)
+                {
+                    c = temp.GetPixel(i, j);
+                    temp.SetPixel(i, j, Color.FromArgb(gammaArray[c.R], gammaArray[c.G], gammaArray[c.B]));
+                }
+            }
+
+            return (Bitmap)temp.Clone();
+        }
+
+        public byte[] createGammaArray(double c)
+        {
+            byte[] gamma = new byte[256];
+            for ( int i = 0; i < 256; i++)
+            {
+                gamma[i] = (byte)Math.Min(255,(int)((255.0 * Math.Pow(i / 255.0, 1.0 / c)) + 0.5));
+            }
+            return gamma;
         }
 
         protected void BlurOnClick(object sender, EventArgs e)
