@@ -28,6 +28,7 @@ namespace WindowsFormsApp1
         private Button buttonEmboss;
 
         private Button buttonGamma;
+        private Button buttonThreshold;
 
         private Button buttonKernelReady;
         private TextBox kernelOneDimensionTextbox;
@@ -43,6 +44,9 @@ namespace WindowsFormsApp1
         private Label pixelLabel;
 
         private TrackBar gammaTrackbar;
+
+        private TrackBar thresholdTrackbar;
+        private int threshold = 100;
         
         private int[,] kernel;
         private int kernelRows = 1;
@@ -122,20 +126,38 @@ namespace WindowsFormsApp1
             buttonGamma = new Button();
             buttonGamma.Text = "Gamma";
             buttonGamma.Left = 3 + buttonLoad.Width;
-            buttonGamma.Top = 3 + 2 * buttonLoad.Height;
-            buttonGamma.Width = 150;
+            buttonGamma.Top = 3 + buttonLoad.Height;
+            buttonGamma.Width = 180;
             buttonGamma.Click += new EventHandler(this.GammaOnClick);
+
+            buttonThreshold = new Button();
+            buttonThreshold.Text = "Threshold";
+            buttonThreshold.Left = 3 + buttonLoad.Width;
+            buttonThreshold.Top = 3 + 5 * buttonLoad.Height;
+            buttonThreshold.Width = 180;
+            buttonThreshold.Click += new EventHandler(this.ThresholdOnClick);
 
             gammaTrackbar = new TrackBar();
             gammaTrackbar.Left = 3 + buttonLoad.Width;
-            gammaTrackbar.Top = 3 + 4 * buttonLoad.Height;
+            gammaTrackbar.Top = 3 + 2 * buttonLoad.Height;
             gammaTrackbar.Height = 40;
-            gammaTrackbar.Width = 200;
+            gammaTrackbar.Width = 180;
             gammaTrackbar.Minimum = 0;
             gammaTrackbar.Maximum = 100;
             gammaTrackbar.TickFrequency = 5;
             gammaTrackbar.Orientation = Orientation.Horizontal;
             gammaTrackbar.Scroll += new System.EventHandler(this.trackbarScroll);
+
+            thresholdTrackbar = new TrackBar();
+            thresholdTrackbar.Left = 3 + buttonLoad.Width;
+            thresholdTrackbar.Top = 3 + 6 * buttonLoad.Height;
+            thresholdTrackbar.Height = 40;
+            thresholdTrackbar.Width = 180;
+            thresholdTrackbar.Minimum = 0;
+            thresholdTrackbar.Maximum = 255;
+            thresholdTrackbar.TickFrequency = 5;
+            thresholdTrackbar.Orientation = Orientation.Horizontal;
+            thresholdTrackbar.Scroll += new System.EventHandler(this.trackbarScroll2);
 
             buttonKernelReady = new Button();
             buttonKernelReady.Text = "Ready";
@@ -242,7 +264,51 @@ namespace WindowsFormsApp1
             this.Controls.Add(buttonGamma);
             this.Controls.Add(gammaTrackbar);
 
+            this.Controls.Add(thresholdTrackbar);
+            this.Controls.Add(buttonThreshold);
+
             InitializeComponent();
+        }
+
+        private void ThresholdOnClick(object sender, EventArgs e)
+        {
+            filterBitmap = SetThreshold(originalBitmap, threshold);
+            filterImage.Image = filterBitmap;
+            originalBitmap = SetGrayscale(originalBitmap);
+            originalImage.Image = originalBitmap;
+        }
+
+        public Bitmap SetThreshold(Bitmap orgBitmap, int threshold)
+        {
+            Bitmap temp = (Bitmap)orgBitmap.Clone();
+            Color c;
+            byte gray;
+           
+
+            for (int i = 0; i < temp.Width; i++)
+            {
+                for (int j = 0; j < temp.Height; j++)
+                {
+                    c = temp.GetPixel(i, j);
+                    gray = (byte)(0.299 * c.R + 0.587 * c.G + 0.114 * c.B);
+
+                    if(gray >= threshold)
+                    {
+                        temp.SetPixel(i, j, Color.FromArgb(255, 255, 255));
+                    }
+                    else
+                    {
+                        temp.SetPixel(i, j, Color.FromArgb(0, 0, 0));
+                    }
+                }
+            }
+
+            return (Bitmap)temp.Clone();
+        }
+
+        private void trackbarScroll2(object sender, EventArgs e)
+        {
+            threshold = Int32.Parse(thresholdTrackbar.Value.ToString());
         }
 
         private void trackbarScroll(object sender, EventArgs e)
